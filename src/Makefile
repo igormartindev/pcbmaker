@@ -1,5 +1,5 @@
 # Name of application
-APPLICATION = riot-template
+APPLICATION = PcbMaker
 
 # If no BOARD is found in the environment, use this default:
 BOARD ?= bluepill
@@ -38,6 +38,7 @@ FEATURES_REQUIRED += periph_gpio
 FEATURES_REQUIRED += periph_timer
 
 USEMODULE += xtimer
+USEMODULE += ds18
 
 # If you want to add some extra flags when compile c++ files, add these flags
 # to CXXEXFLAGS variable
