@@ -32,13 +32,15 @@ DEVELHELP ?= 1
 # Change this to 0 show compiler invocation lines by default:
 QUIET ?= 1
 
-# Features required
+# Features
 FEATURES_REQUIRED += cpp
 FEATURES_REQUIRED += periph_gpio
 FEATURES_REQUIRED += periph_timer
 
+# Modules
 USEMODULE += xtimer
 USEMODULE += ds18
+USEMODULE += servo
 
 # If you want to add some extra flags when compile c++ files, add these flags
 # to CXXEXFLAGS variable

@@ -1,13 +1,5 @@
-#include <board.h>
-#include <thread.h>
-#include <periph_conf.h>
-#include <periph/gpio.h>
-#include <xtimer.h>
+#include "main.hpp"
 
-#include "ds18.h"
-#include <cmath>
-
-#define loop while(1)
 
 const uint8_t DEFAULT_SLEEP_TIME = 1;
 
@@ -44,6 +36,29 @@ void* tempMonitorThread(void *)
     }
 }
 
+void servoTest()
+{
+    Sg90 servo(0, 0);
+
+    if (!servo.init()) {
+        puts("Errors while initializing servo");
+        return;
+    }
+
+    puts("Servo initialized.");
+
+    servo.setDegree(0);
+    xtimer_sleep(DEFAULT_SLEEP_TIME);
+
+    servo.setDegree(180);
+    xtimer_sleep(DEFAULT_SLEEP_TIME);
+
+    servo.setDegree(90);
+    xtimer_sleep(DEFAULT_SLEEP_TIME);
+
+    servo.detach();
+}
+
 int main()
 {
     board_init();
@@ -57,6 +72,8 @@ int main()
             NULL,
             "Temperature monitor"
         );
+
+    servoTest();
 
     loop {
         gpio_toggle(LED0_PIN);
