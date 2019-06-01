@@ -1521,4 +1521,5 @@ add_executable(system
         lib/RIOT/cpu/cortexm_common/panic.c
         lib/RIOT/cpu/cortexm_common/thread_arch.c
         lib/RIOT/cpu/cortexm_common/vectors_cortexm.c
-        src/main.cpp)
+        src/drivers/ServoMotor.hpp src/drivers/ServoMotor_impl.hpp
+        src/main.cpp src/main.hpp)
