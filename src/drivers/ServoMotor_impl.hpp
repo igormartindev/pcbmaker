@@ -44,3 +44,14 @@ void ServoMotor<FREQUENCY, MIN_PULSE, MAX_PULSE, MAX_DEGREE>::setDegree(uint16_t
 
     servo_set(this->device, position);
 }
+
+/**
+ * Disable the servo retention
+ *
+ * Use set degree to enable retention
+ */
+template <uint16_t FREQUENCY, uint16_t MIN_PULSE, uint16_t MAX_PULSE, uint16_t MAX_DEGREE>
+void ServoMotor<FREQUENCY, MIN_PULSE, MAX_PULSE, MAX_DEGREE>::detach()
+{
+    pwm_set(this->device->device, (uint8_t)this->device->channel, 0);
+}

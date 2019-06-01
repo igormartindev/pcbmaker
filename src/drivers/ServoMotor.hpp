@@ -25,6 +25,7 @@ public:
     explicit ServoMotor(uint8_t pwm, uint8_t channel);
     bool init();
     void setDegree(uint16_t degree);
+    void detach();
 };
 
 #include "ServoMotor_impl.hpp"
