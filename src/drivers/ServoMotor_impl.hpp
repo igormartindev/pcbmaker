@@ -37,12 +37,7 @@ bool ServoMotor<FREQUENCY, MIN_PULSE, MAX_PULSE, MAX_DEGREE>::init()
 template <uint16_t FREQUENCY, uint16_t MIN_PULSE, uint16_t MAX_PULSE, uint16_t MAX_DEGREE>
 void ServoMotor<FREQUENCY, MIN_PULSE, MAX_PULSE, MAX_DEGREE>::setDegree(uint16_t degree)
 {
-    uint16_t position = (uint16_t)(MIN_PULSE + (ONE_DEGREE * degree));
-
-    printf("Servo degree: %d\n", degree);
-    printf("Servo position: %d\n", position);
-
-    servo_set(this->device, position);
+    servo_set(this->device, (uint16_t)(MIN_PULSE + (ONE_DEGREE * degree)));
 }
 
 /**

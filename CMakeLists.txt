@@ -1,6 +1,6 @@
 # THIS FILE ONY FOR THE IDE AUTOCOMPLETE
 
-project(pcb-maker)
+project(pcbmaker)
 
 cmake_minimum_required(VERSION 3.7)
 SET(CMAKE_SYSTEM_NAME Generic)
