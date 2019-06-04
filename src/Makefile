@@ -29,6 +29,7 @@ FEATURES_REQUIRED += periph_timer
 USEMODULE += xtimer
 USEMODULE += ds18
 USEMODULE += servo
+USEMODULE += hd44780
 
 # C Flags
 # CFLAGS += -DSCHEDSTATISTICS

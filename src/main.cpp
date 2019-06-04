@@ -1,5 +1,6 @@
 #include "main.hpp"
 
+#include "hd44780.h"
 
 const uint8_t DEFAULT_SLEEP_TIME = 1;
 char tempMonitorStack[MIN_STACK_SIZE];
@@ -61,6 +62,46 @@ void servoTest()
     servo.detach();
 }
 
+void lcdTest()
+{
+    const uint8_t HD44780_PIN_NONE = HD44780_RW_OFF;
+
+    char lcdLine[16 + 1];
+
+    hd44780_t lcd = {};
+    hd44780_params_t lcdParams = {
+        .cols   = 16,
+        .rows   = 2,
+        .rs     = GPIO_PIN(PORT_B, 12),
+        .rw     = HD44780_PIN_NONE,
+        .enable = GPIO_PIN(PORT_B, 13),
+        .data   = {
+            GPIO_PIN(PORT_A, 9),
+            GPIO_PIN(PORT_A, 10),
+            GPIO_PIN(PORT_A, 11),
+            GPIO_PIN(PORT_A, 12),
+            HD44780_PIN_NONE,
+            HD44780_PIN_NONE,
+            HD44780_PIN_NONE,
+            HD44780_PIN_NONE
+        }
+    };
+
+    if (hd44780_init(&lcd, &lcdParams) != 0) {
+        puts("Error lcd init");
+    }
+
+    hd44780_clear(&lcd);
+    hd44780_home(&lcd);
+
+    hd44780_print(&lcd, "Temperature:");
+
+    hd44780_set_cursor(&lcd, 0, 1);
+    sprintf(lcdLine, "%d.%02d *C", temperature / 100, abs(temperature) % 100);
+
+    hd44780_print(&lcd, lcdLine);
+}
+
 int main()
 {
     board_init();
@@ -75,6 +116,7 @@ int main()
             "Temperature monitor"
         );
 
+    lcdTest();
     servoTest();
 
     loop {
