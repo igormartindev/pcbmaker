@@ -12,5 +12,14 @@
 #include "drivers/ServoMotor.hpp"
 #include "drivers/Sg90.hpp"
 
+#define ENABLE_DEBUG (0)
+#include "debug.h"
+
+#if ENABLE_DEBUG
+const uint16_t MIN_STACK_SIZE = THREAD_STACKSIZE_TINY + THREAD_EXTRA_STACKSIZE_PRINTF;
+#else
+const uint16_t MIN_STACK_SIZE = THREAD_STACKSIZE_TINY;
+#endif
+
 
 #define loop while(1)

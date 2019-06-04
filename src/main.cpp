@@ -2,8 +2,7 @@
 
 
 const uint8_t DEFAULT_SLEEP_TIME = 1;
-
-char tempMonitorStack[THREAD_STACKSIZE_MAIN];
+char tempMonitorStack[MIN_STACK_SIZE];
 int16_t temperature = 0;
 
 void* tempMonitorThread(void *)
@@ -17,7 +16,7 @@ void* tempMonitorThread(void *)
     };
 
     if (ds18_init(&sensor, &sensor.params) != DS18_OK) {
-        puts("Error: The sensor pin could not be initialized\n");
+        DEBUG("Error: The sensor pin could not be initialized\n");
 
         loop {
             xtimer_sleep(DEFAULT_SLEEP_TIME);
@@ -26,12 +25,15 @@ void* tempMonitorThread(void *)
 
     loop {
         if (ds18_get_temperature(&sensor, &temperature) != DS18_OK) {
-            puts("Error: Could not read temperature\n");
+            DEBUG("Error: Could not read temperature\n");
             xtimer_sleep(DEFAULT_SLEEP_TIME);
             continue;
         }
 
-        printf("Temperature: %d.%02d *C\n", temperature / 100, abs(temperature) % 100);
+        if (ENABLE_DEBUG) {
+            DEBUG_PRINT("Temperature: %d.%02d *C\n", temperature / 100, abs(temperature) % 100);
+        }
+
         xtimer_sleep(DEFAULT_SLEEP_TIME);
     }
 }
@@ -41,11 +43,11 @@ void servoTest()
     Sg90 servo(0, 0);
 
     if (!servo.init()) {
-        puts("Errors while initializing servo");
+        DEBUG("Errors while initializing servo");
         return;
     }
 
-    puts("Servo initialized.");
+    DEBUG("Servo initialized.");
 
     servo.setDegree(0);
     xtimer_sleep(DEFAULT_SLEEP_TIME);
