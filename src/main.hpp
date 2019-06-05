@@ -12,7 +12,7 @@
 #include "drivers/ServoMotor.hpp"
 #include "drivers/Sg90.hpp"
 
-#define ENABLE_DEBUG (0)
+#define ENABLE_DEBUG (1)
 #include "debug.h"
 
 #if ENABLE_DEBUG

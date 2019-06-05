@@ -1,43 +1,11 @@
 #include "main.hpp"
-
+#include "threads/SensorsThread.hpp"
 #include "hd44780.h"
 
 const uint8_t DEFAULT_SLEEP_TIME = 1;
-char tempMonitorStack[MIN_STACK_SIZE];
-int16_t temperature = 0;
 
-void* tempMonitorThread(void *)
-{
-    ds18_t sensor = {
-        .params = {
-            .pin      = GPIO_PIN(PORT_B, 1),
-            .out_mode = GPIO_OD_PU,
-            .in_mode  = GPIO_IN_PU,
-        }
-    };
-
-    if (ds18_init(&sensor, &sensor.params) != DS18_OK) {
-        DEBUG("Error: The sensor pin could not be initialized\n");
-
-        loop {
-            xtimer_sleep(DEFAULT_SLEEP_TIME);
-        }
-    }
-
-    loop {
-        if (ds18_get_temperature(&sensor, &temperature) != DS18_OK) {
-            DEBUG("Error: Could not read temperature\n");
-            xtimer_sleep(DEFAULT_SLEEP_TIME);
-            continue;
-        }
-
-        if (ENABLE_DEBUG) {
-            DEBUG_PRINT("Temperature: %d.%02d *C\n", temperature / 100, abs(temperature) % 100);
-        }
-
-        xtimer_sleep(DEFAULT_SLEEP_TIME);
-    }
-}
+typedef SensorsThread<MIN_STACK_SIZE> Sensors;
+Sensors sensorsThread("Sensors", THREAD_PRIORITY_MAIN - 1, THREAD_CREATE_WOUT_YIELD);
 
 void servoTest()
 {
@@ -97,7 +65,13 @@ void lcdTest()
     hd44780_print(&lcd, "Temperature:");
 
     hd44780_set_cursor(&lcd, 0, 1);
-    sprintf(lcdLine, "%d.%02d *C", temperature / 100, abs(temperature) % 100);
+
+    sprintf(
+        lcdLine,
+        "%d.%02d *C",
+        (uint16_t)sensorsThread.getTemperature(),
+        abs((uint16_t)(sensorsThread.getTemperature() * 100) % 100)
+    );
 
     hd44780_print(&lcd, lcdLine);
 }
@@ -106,21 +80,20 @@ int main()
 {
     board_init();
 
-    thread_create(
-            tempMonitorStack,
-            sizeof(tempMonitorStack),
-            0,
-            THREAD_CREATE_WOUT_YIELD,
-            tempMonitorThread,
-            NULL,
-            "Temperature monitor"
-        );
+    sensorsThread.create();
 
     lcdTest();
     servoTest();
 
     loop {
         gpio_toggle(LED0_PIN);
+
+        printf(
+            "Temperature: %d.%02d *C\n",
+            (uint16_t)sensorsThread.getTemperature(),
+            abs((uint16_t)(sensorsThread.getTemperature() * 100) % 100)
+        );
+
         xtimer_sleep(DEFAULT_SLEEP_TIME);
     }
 
