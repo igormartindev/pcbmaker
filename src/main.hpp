@@ -10,7 +10,9 @@
 #include <cmath>
 
 #include "drivers/ServoMotor.hpp"
-#include "drivers/Sg90.hpp"
+#include "drivers/Lcd44780.hpp"
+
+#define loop while(1)
 
 #define ENABLE_DEBUG (1)
 #include "debug.h"
@@ -21,5 +23,4 @@ const uint16_t MIN_STACK_SIZE = THREAD_STACKSIZE_TINY + THREAD_EXTRA_STACKSIZE_P
 const uint16_t MIN_STACK_SIZE = THREAD_STACKSIZE_TINY;
 #endif
 
-
-#define loop while(1)
+const uint8_t DEFAULT_SLEEP_TIME = 1;
