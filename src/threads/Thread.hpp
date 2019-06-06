@@ -10,9 +10,8 @@ public:
 protected:
     /**
      * Main function of the thread
-     * @return
      */
-    virtual void* run(void*) = 0;
+    virtual void run() = 0;
 
 private:
     char stack[stackSize];
@@ -21,17 +20,16 @@ private:
     int flags;
     kernel_pid_t pid;
 
-    inline static void* call(void* args)
+    inline static void* call(void* self)
     {
-        Thread<stackSize>* self = (Thread<stackSize>*)args;
-        return self->run(NULL);
+        ((Thread<stackSize>*)self)->run();
+        return NULL;
     }
 };
 
 /**
  * Constructor
- *
- * @tparam stackSize (ex: THREAD_STACKSIZE_MAIN)
+ * @tparam stackSize Stack size for the thread (ex: THREAD_STACKSIZE_MAIN)
  * @param name       Name of thread
  * @param priority   Priority of the thread (ex: THREAD_PRIORITY_MAIN)
  * @param flags      Thread modifiers (ex: THREAD_CREATE_WOUT_YIELD)
@@ -46,7 +44,6 @@ Thread<stackSize>::Thread(const char* name, char priority, int flags)
 
 /**
  * Create current thread and add to scheduler
- *
  * @return kernel_pid_t Process id of the thread
  */
 template <uint16_t stackSize>

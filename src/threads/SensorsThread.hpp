@@ -4,27 +4,37 @@
 #include "Thread.hpp"
 
 
-template <uint16_t stackSize>
-class SensorsThread : public Thread<stackSize>
+template <uint16_t STACK_SIZE>
+class SensorsThread : public Thread<STACK_SIZE>
 {
 public:
-    using Thread<stackSize>::Thread;
+    using Thread<STACK_SIZE>::Thread;
 
     /**
      * Get temperature
      * @return float
      */
-    float getTemperature()
+    inline float getTemperature()
     {
         return temperature;
+    }
+
+    /**
+     * Check for actual value exists
+     * @return bool
+     */
+    inline bool hasTemperature()
+    {
+        return this->hasActualTemperature;
     }
 
 protected:
     const uint16_t SLEEP_TIME = 1;
 
-    volatile float temperature = 0;
+    bool hasActualTemperature = false;
+    volatile float temperature;
 
-    void* run(void*) override
+    void run() override
     {
         uint16_t rawTemperature = 0;
 
@@ -47,11 +57,15 @@ protected:
         loop {
             if (ds18_get_temperature(&sensor, (int16_t*) &rawTemperature) != DS18_OK) {
                 DEBUG("Error: Could not read temperature\n");
+                this->hasActualTemperature = false;
+
                 xtimer_sleep(SLEEP_TIME);
                 continue;
             }
 
             this->temperature = (float)rawTemperature / 100;
+            this->hasActualTemperature = true;
+
             xtimer_sleep(SLEEP_TIME);
         }
     }
