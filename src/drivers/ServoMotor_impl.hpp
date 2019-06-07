@@ -18,15 +18,13 @@ ServoMotor<FREQUENCY, MIN_PULSE, MAX_PULSE, MAX_DEGREE>::ServoMotor(uint8_t pwm,
  * Setup pwm frequency and servo positions
  */
 template <uint16_t FREQUENCY, uint16_t MIN_PULSE, uint16_t MAX_PULSE, uint16_t MAX_DEGREE>
-bool ServoMotor<FREQUENCY, MIN_PULSE, MAX_PULSE, MAX_DEGREE>::init()
+void ServoMotor<FREQUENCY, MIN_PULSE, MAX_PULSE, MAX_DEGREE>::init()
 {
     servo_init(this->device, this->pwm, this->pwmChannel, MIN_PULSE, MAX_PULSE);
 
     // Update frequency
     this->device->scale_nom = pwm_init(pwm, PWM_LEFT, FREQUENCY, RESOLUTION);
     this->device->scale_den = FREQUENCY;
-
-    return true;
 }
 
 /**

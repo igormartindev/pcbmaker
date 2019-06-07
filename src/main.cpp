@@ -1,126 +1,47 @@
 #include "main.hpp"
-
+#include "threads/SensorsThread.hpp"
 #include "hd44780.h"
 
-const uint8_t DEFAULT_SLEEP_TIME = 1;
-char tempMonitorStack[MIN_STACK_SIZE];
-int16_t temperature = 0;
+typedef SensorsThread<MIN_STACK_SIZE> Sensors;
+typedef ServoMotor<50, 544, 2400, 180> Sg90;
+typedef Lcd44780<16, 02> Lcd1602;
 
-void* tempMonitorThread(void *)
-{
-    ds18_t sensor = {
-        .params = {
-            .pin      = GPIO_PIN(PORT_B, 1),
-            .out_mode = GPIO_OD_PU,
-            .in_mode  = GPIO_IN_PU,
-        }
-    };
+Sg90 servo(0, 0);
+Lcd1602 lcd(
+    GPIO_PIN(PORT_B, 12),
+    GPIO_PIN(PORT_B, 13),
+    GPIO_PIN(PORT_A, 9),
+    GPIO_PIN(PORT_A, 10),
+    GPIO_PIN(PORT_A, 11),
+    GPIO_PIN(PORT_A, 12)
+);
 
-    if (ds18_init(&sensor, &sensor.params) != DS18_OK) {
-        DEBUG("Error: The sensor pin could not be initialized\n");
-
-        loop {
-            xtimer_sleep(DEFAULT_SLEEP_TIME);
-        }
-    }
-
-    loop {
-        if (ds18_get_temperature(&sensor, &temperature) != DS18_OK) {
-            DEBUG("Error: Could not read temperature\n");
-            xtimer_sleep(DEFAULT_SLEEP_TIME);
-            continue;
-        }
-
-        if (ENABLE_DEBUG) {
-            DEBUG_PRINT("Temperature: %d.%02d *C\n", temperature / 100, abs(temperature) % 100);
-        }
-
-        xtimer_sleep(DEFAULT_SLEEP_TIME);
-    }
-}
-
-void servoTest()
-{
-    Sg90 servo(0, 0);
-
-    if (!servo.init()) {
-        DEBUG("Errors while initializing servo");
-        return;
-    }
-
-    DEBUG("Servo initialized.");
-
-    servo.setDegree(0);
-    xtimer_sleep(DEFAULT_SLEEP_TIME);
-
-    servo.setDegree(180);
-    xtimer_sleep(DEFAULT_SLEEP_TIME);
-
-    servo.setDegree(90);
-    xtimer_sleep(DEFAULT_SLEEP_TIME);
-
-    servo.detach();
-}
-
-void lcdTest()
-{
-    const uint8_t HD44780_PIN_NONE = HD44780_RW_OFF;
-
-    char lcdLine[16 + 1];
-
-    hd44780_t lcd = {};
-    hd44780_params_t lcdParams = {
-        .cols   = 16,
-        .rows   = 2,
-        .rs     = GPIO_PIN(PORT_B, 12),
-        .rw     = HD44780_PIN_NONE,
-        .enable = GPIO_PIN(PORT_B, 13),
-        .data   = {
-            GPIO_PIN(PORT_A, 9),
-            GPIO_PIN(PORT_A, 10),
-            GPIO_PIN(PORT_A, 11),
-            GPIO_PIN(PORT_A, 12),
-            HD44780_PIN_NONE,
-            HD44780_PIN_NONE,
-            HD44780_PIN_NONE,
-            HD44780_PIN_NONE
-        }
-    };
-
-    if (hd44780_init(&lcd, &lcdParams) != 0) {
-        puts("Error lcd init");
-    }
-
-    hd44780_clear(&lcd);
-    hd44780_home(&lcd);
-
-    hd44780_print(&lcd, "Temperature:");
-
-    hd44780_set_cursor(&lcd, 0, 1);
-    sprintf(lcdLine, "%d.%02d *C", temperature / 100, abs(temperature) % 100);
-
-    hd44780_print(&lcd, lcdLine);
-}
+Sensors sensorsThread("Sensors", THREAD_PRIORITY_MAIN - 1, THREAD_CREATE_WOUT_YIELD);
 
 int main()
 {
     board_init();
+    servo.init();
+    lcd.init();
 
-    thread_create(
-            tempMonitorStack,
-            sizeof(tempMonitorStack),
-            0,
-            THREAD_CREATE_WOUT_YIELD,
-            tempMonitorThread,
-            NULL,
-            "Temperature monitor"
-        );
+    sensorsThread.create();
 
-    lcdTest();
-    servoTest();
+    lcd.print("Temperature:");
 
     loop {
         gpio_toggle(LED0_PIN);
+
+        lcd.setCursorPosition(0, 1);
+        if (sensorsThread.hasTemperature()) {
+            lcd.printf(
+                "%d.%02d *C",
+                (uint16_t)sensorsThread.getTemperature(),
+                abs((uint16_t)(sensorsThread.getTemperature() * 100) % 100)
+            );
+        } else {
+            lcd.print("--.-- *C");
+        }
+
         xtimer_sleep(DEFAULT_SLEEP_TIME);
     }
 

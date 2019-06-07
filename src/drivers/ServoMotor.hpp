@@ -22,8 +22,8 @@ private:
     uint8_t pwmChannel;
 
 public:
-    explicit ServoMotor(uint8_t pwm, uint8_t channel);
-    bool init();
+    explicit ServoMotor(uint8_t pwm, uint8_t channel) noexcept;
+    void init();
     void setDegree(uint16_t degree);
     void detach();
 };

@@ -34,6 +34,7 @@ USEMODULE += hd44780
 # C Flags
 # CFLAGS += -DSCHEDSTATISTICS
 # CFLAGS += -DDEVELHELP
+# CFLAGS += -Wno-error=format-switch
 
 # C++ extra Flags
 CXXEXFLAGS += -std=gnu++11
