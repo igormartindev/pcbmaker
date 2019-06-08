@@ -4,8 +4,9 @@
 
 typedef SensorsThread<MIN_STACK_SIZE> Sensors;
 typedef ServoMotor<50, 544, 2400, 180> Sg90;
-typedef Lcd44780<16, 02> Lcd1602;
+typedef Lcd44780<16, 2> Lcd1602;
 
+RotaryEncoder encoder(GPIO_PIN(PORT_A, 6), GPIO_PIN(PORT_A, 5), GPIO_PIN(PORT_A, 7));
 Sg90 servo(0, 0);
 Lcd1602 lcd(
     GPIO_PIN(PORT_B, 12),
@@ -18,19 +19,43 @@ Lcd1602 lcd(
 
 Sensors sensorsThread("Sensors", THREAD_PRIORITY_MAIN - 1, THREAD_CREATE_WOUT_YIELD);
 
+uint8_t time = 0;
+
 int main()
 {
+    encoder.onClick = []() {
+        gpio_toggle(LED0_PIN);
+    };
+
+    encoder.onClockWise = []() {
+        gpio_set(LED0_PIN);
+        if (time < 180) {
+            time++;
+        }
+    };
+
+    encoder.onCounterClockWise = []() {
+        if (time > 0) {
+            time--;
+        }
+
+        gpio_clear(LED0_PIN);
+    };
+
     board_init();
+    encoder.init();
     servo.init();
     lcd.init();
 
     sensorsThread.create();
 
+    servo.setDegree(180);
+    xtimer_sleep(DEFAULT_SLEEP_TIME);
+    servo.detach();
+
     lcd.print("Temperature:");
 
     loop {
-        gpio_toggle(LED0_PIN);
-
         lcd.setCursorPosition(0, 1);
         if (sensorsThread.hasTemperature()) {
             lcd.printf(
@@ -42,7 +67,10 @@ int main()
             lcd.print("--.-- *C");
         }
 
-        xtimer_sleep(DEFAULT_SLEEP_TIME);
+        lcd.setCursorPosition(10, 1);
+        lcd.printf("%d   ", time);
+
+        xtimer_usleep(10000);
     }
 
     return 0;

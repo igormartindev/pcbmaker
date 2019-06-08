@@ -2,7 +2,6 @@
 
 #include <board.h>
 #include <periph/gpio.h>
-#include <cmath>
 
 /**
  * Rotary encoder driver
@@ -12,16 +11,26 @@ class RotaryEncoder
 public:
     explicit RotaryEncoder(gpio_t pinA, gpio_t pinB, gpio_t button) noexcept;
     void init();
-    void onClick();
-    void onClockWise();
-    void onCounterClockWise();
+
+    /**
+     * Button click event
+     */
+    void (*onClick)() = nullptr;
+    /**
+     * Clockwise encoder rotation event
+     */
+    void (*onClockWise)() = nullptr;
+    /**
+     * Counterclockwise encoder rotation event
+     */
+    void (*onCounterClockWise)() = nullptr;
 
 private:
     /**
      * Ignoring time for the irq to prevent contact debounce
      */
     static const uint32_t BUTTON_IRQ_IGNORE_TIME   = 100000;
-    static const uint32_t ROTATION_IRQ_IGNORE_TIME =  70000;
+    static const uint32_t ROTATION_IRQ_IGNORE_TIME =  30000;
 
     enum IrqSource {
         PIN_A,
@@ -67,27 +76,6 @@ void RotaryEncoder::init()
 }
 
 /**
- * Button click event
- */
-void RotaryEncoder::onClick()
-{
-}
-
-/**
- * Clockwise encoder rotation event
- */
-void RotaryEncoder::onClockWise()
-{
-}
-
-/**
- * Counterclockwise encoder rotation event
- */
-void RotaryEncoder::onCounterClockWise()
-{
-}
-
-/**
  * Button pin irq handler
  * @param args Instance og RotaryEncoder
  */
@@ -105,7 +93,10 @@ void RotaryEncoder::buttonIrqHandler(void* args)
         return;
     }
 
-    instance->onClick();
+    if (instance->onClick) {
+        instance->onClick();
+    }
+
     instance->buttonLastIrqTimestamp = now;
 
     gpio_irq_enable(instance->button);
@@ -153,14 +144,14 @@ inline void RotaryEncoder::rotationHandler(IrqSource irqSource)
 
     switch (irqSource) {
         case IrqSource::PIN_A:
-            if (gpio_read(this->pinB)) {
-                this->onClockWise();
+            if (gpio_read(this->pinB) && this->onCounterClockWise) {
+                this->onCounterClockWise();
             }
             break;
 
         case IrqSource::PIN_B:
-            if (gpio_read(this->pinA)) {
-                this->onCounterClockWise();
+            if (gpio_read(this->pinA) && this->onClockWise) {
+                this->onClockWise();
             }
             break;
 

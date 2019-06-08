@@ -23,6 +23,7 @@ QUIET ?= 1
 # Used Features
 FEATURES_REQUIRED += cpp
 FEATURES_REQUIRED += periph_gpio
+FEATURES_REQUIRED += periph_gpio_irq
 FEATURES_REQUIRED += periph_timer
 
 # Used Modules
