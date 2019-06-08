@@ -2,6 +2,7 @@
 
 #include <board.h>
 #include <periph/gpio.h>
+#include <xtimer.h>
 
 /**
  * Rotary encoder driver
@@ -24,6 +25,14 @@ public:
      * Counterclockwise encoder rotation event
      */
     void (*onCounterClockWise)() = nullptr;
+    /**
+     * Button down position event
+     */
+    void (*onKeyDown)() = nullptr;
+    /**
+     * Button pressed event
+     */
+    void (*onKeyPressed)() = nullptr;
 
 private:
     /**
@@ -32,9 +41,19 @@ private:
     static const uint32_t BUTTON_IRQ_IGNORE_TIME   = 100000;
     static const uint32_t ROTATION_IRQ_IGNORE_TIME =  30000;
 
+    /**
+     * Timeout for key pressed event
+     */
+    static const uint32_t BUTTON_PRESSED_DELAY = 1000000;
+
     enum IrqSource {
         PIN_A,
         PIN_B,
+    };
+
+    enum ButtonPosition {
+        KEY_UP,
+        KEY_DOWN,
     };
 
     gpio_t pinA;
@@ -45,7 +64,10 @@ private:
     uint32_t pinALastIrqTimestamp   = 0;
     uint32_t pinBLastIrqTimestamp   = 0;
 
+    xtimer_t keyPressedTimer;
+
     static void buttonIrqHandler(void* args);
+    static void buttonPressedHandler(void *args);
     static void pinAIrqHandler(void *args);
     static void pinBIrqHandler(void *args);
 
@@ -67,10 +89,13 @@ RotaryEncoder::RotaryEncoder(gpio_t pinA, gpio_t pinB, gpio_t button) : pinA{pin
  */
 void RotaryEncoder::init()
 {
+    this->keyPressedTimer.callback = buttonPressedHandler;
+    this->keyPressedTimer.arg = this;
+
     /**
      * Used different handlers to prevent heap usage
      */
-    gpio_init_int(button, GPIO_IN_PU, GPIO_RISING, RotaryEncoder::buttonIrqHandler, this);
+    gpio_init_int(button, GPIO_IN_PU, GPIO_BOTH, RotaryEncoder::buttonIrqHandler, this);
     gpio_init_int(pinA, GPIO_IN_PU, GPIO_FALLING, RotaryEncoder::pinAIrqHandler, this);
     gpio_init_int(pinB, GPIO_IN_PU, GPIO_FALLING, RotaryEncoder::pinBIrqHandler, this);
 }
@@ -81,25 +106,53 @@ void RotaryEncoder::init()
  */
 void RotaryEncoder::buttonIrqHandler(void* args)
 {
-    auto instance = (RotaryEncoder*) args;
+    auto encoder = (RotaryEncoder*) args;
 
-    gpio_irq_disable(instance->button);
+    gpio_irq_disable(encoder->button);
 
+    uint8_t buttonPosition = gpio_read(encoder->button) ? ButtonPosition::KEY_UP : ButtonPosition::KEY_DOWN;
     uint32_t now = xtimer_usec_from_ticks(xtimer_now());
 
-    if ((now - instance->buttonLastIrqTimestamp) < BUTTON_IRQ_IGNORE_TIME) {
-        instance->buttonLastIrqTimestamp = now;
-        gpio_irq_enable(instance->button);
+    if ((now - encoder->buttonLastIrqTimestamp) < BUTTON_IRQ_IGNORE_TIME) {
+        encoder->buttonLastIrqTimestamp = now;
+        gpio_irq_enable(encoder->button);
         return;
     }
 
-    if (instance->onClick) {
-        instance->onClick();
+    if (buttonPosition == ButtonPosition::KEY_DOWN) {
+        xtimer_set(&encoder->keyPressedTimer, BUTTON_PRESSED_DELAY);
     }
 
-    instance->buttonLastIrqTimestamp = now;
+    if (buttonPosition == ButtonPosition::KEY_UP) {
+        xtimer_remove(&encoder->keyPressedTimer);
+    }
 
-    gpio_irq_enable(instance->button);
+    if (buttonPosition == ButtonPosition::KEY_DOWN && encoder->onKeyDown) {
+        encoder->onKeyDown();
+    }
+
+    if (buttonPosition == ButtonPosition::KEY_UP && encoder->onClick) {
+        encoder->onClick();
+    }
+
+    encoder->buttonLastIrqTimestamp = now;
+
+    gpio_irq_enable(encoder->button);
+}
+
+/**
+ * Callback for key pressed event
+ * @param args RotaryEncoder
+ */
+void RotaryEncoder::buttonPressedHandler(void *args)
+{
+    auto encoder = (RotaryEncoder*) args;
+
+    if (encoder->onKeyPressed) {
+        encoder->onKeyPressed();
+    }
+
+    xtimer_remove(&encoder->keyPressedTimer);
 }
 
 /**
@@ -108,11 +161,11 @@ void RotaryEncoder::buttonIrqHandler(void* args)
  */
 void RotaryEncoder::pinAIrqHandler(void *args)
 {
-    auto instance = (RotaryEncoder*) args;
+    auto encoder = (RotaryEncoder*) args;
 
-    gpio_irq_disable(instance->pinA);
-    instance->rotationHandler(IrqSource::PIN_A);
-    gpio_irq_enable(instance->pinA);
+    gpio_irq_disable(encoder->pinA);
+    encoder->rotationHandler(IrqSource::PIN_A);
+    gpio_irq_enable(encoder->pinA);
 }
 
 /**
@@ -121,11 +174,11 @@ void RotaryEncoder::pinAIrqHandler(void *args)
  */
 void RotaryEncoder::pinBIrqHandler(void *args)
 {
-    auto instance = (RotaryEncoder*) args;
+    auto encoder = (RotaryEncoder*) args;
 
-    gpio_irq_disable(instance->pinB);
-    instance->rotationHandler(IrqSource::PIN_B);
-    gpio_irq_enable(instance->pinB);
+    gpio_irq_disable(encoder->pinB);
+    encoder->rotationHandler(IrqSource::PIN_B);
+    gpio_irq_enable(encoder->pinB);
 }
 
 /**

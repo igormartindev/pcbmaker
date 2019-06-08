@@ -27,6 +27,14 @@ int main()
         gpio_toggle(LED0_PIN);
     };
 
+    encoder.onKeyDown = []() {
+        gpio_toggle(LED0_PIN);
+    };
+
+    encoder.onKeyPressed = []() {
+        gpio_toggle(LED0_PIN);
+    };
+
     encoder.onClockWise = []() {
         gpio_clear(LED0_PIN);
         if (time < 180) {
