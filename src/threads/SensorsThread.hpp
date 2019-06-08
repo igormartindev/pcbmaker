@@ -36,7 +36,7 @@ protected:
 
     void run() override
     {
-        uint16_t rawTemperature = 0;
+        int16_t rawTemperature = 0;
 
         ds18_t sensor = {
             .params = {
@@ -55,7 +55,7 @@ protected:
         }
 
         loop {
-            if (ds18_get_temperature(&sensor, (int16_t*) &rawTemperature) != DS18_OK) {
+            if (ds18_get_temperature(&sensor, &rawTemperature) != DS18_OK) {
                 DEBUG("Error: Could not read temperature\n");
                 this->hasActualTemperature = false;
 

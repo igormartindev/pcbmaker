@@ -11,6 +11,7 @@
 
 #include "drivers/ServoMotor.hpp"
 #include "drivers/Lcd44780.hpp"
+#include "drivers/RotaryEncoder.hpp"
 
 #define loop while(1)
 

@@ -1524,4 +1524,6 @@ add_executable(system
         src/drivers/ServoMotor.hpp src/drivers/ServoMotor_impl.hpp
         src/drivers/Lcd44780.hpp
         src/threads/Thread.hpp src/threads/SensorsThread.hpp
-        src/main.cpp src/main.hpp)
+        src/drivers/RotaryEncoder.hpp
+        src/main.cpp src/main.hpp
+)
