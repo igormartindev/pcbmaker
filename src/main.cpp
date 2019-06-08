@@ -28,7 +28,7 @@ int main()
     };
 
     encoder.onClockWise = []() {
-        gpio_set(LED0_PIN);
+        gpio_clear(LED0_PIN);
         if (time < 180) {
             time++;
         }
@@ -39,7 +39,7 @@ int main()
             time--;
         }
 
-        gpio_clear(LED0_PIN);
+        gpio_set(LED0_PIN);
     };
 
     board_init();
@@ -70,7 +70,7 @@ int main()
         lcd.setCursorPosition(10, 1);
         lcd.printf("%d   ", time);
 
-        xtimer_usleep(10000);
+        xtimer_usleep(100000);
     }
 
     return 0;

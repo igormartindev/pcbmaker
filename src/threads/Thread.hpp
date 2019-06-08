@@ -54,7 +54,7 @@ kernel_pid_t Thread<stackSize>::create()
             sizeof(this->stack),
             this->priority,
             this->flags,
-            call,
+            Thread<stackSize>::call,
             this,
             this->name
     );

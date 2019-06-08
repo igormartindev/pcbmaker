@@ -17,7 +17,7 @@ private:
     const float    ONE_DEGREE = (float)(MAX_PULSE - MIN_PULSE) / MAX_DEGREE;
     const uint16_t RESOLUTION = (uint16_t)(US_PER_SEC / FREQUENCY);
 
-    servo_t* device;
+    servo_t device = {};
     pwm_t pwm;
     uint8_t pwmChannel;
 

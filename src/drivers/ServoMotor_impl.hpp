@@ -7,9 +7,6 @@
 template <uint16_t FREQUENCY, uint16_t MIN_PULSE, uint16_t MAX_PULSE, uint16_t MAX_DEGREE>
 ServoMotor<FREQUENCY, MIN_PULSE, MAX_PULSE, MAX_DEGREE>::ServoMotor(uint8_t pwm, uint8_t channel)
 {
-    static servo_t device;
-
-    this->device = &device;
     this->pwm = PWM_DEV(pwm);
     this->pwmChannel = channel;
 }
@@ -20,11 +17,11 @@ ServoMotor<FREQUENCY, MIN_PULSE, MAX_PULSE, MAX_DEGREE>::ServoMotor(uint8_t pwm,
 template <uint16_t FREQUENCY, uint16_t MIN_PULSE, uint16_t MAX_PULSE, uint16_t MAX_DEGREE>
 void ServoMotor<FREQUENCY, MIN_PULSE, MAX_PULSE, MAX_DEGREE>::init()
 {
-    servo_init(this->device, this->pwm, this->pwmChannel, MIN_PULSE, MAX_PULSE);
+    servo_init(&this->device, this->pwm, this->pwmChannel, MIN_PULSE, MAX_PULSE);
 
     // Update frequency
-    this->device->scale_nom = pwm_init(pwm, PWM_LEFT, FREQUENCY, RESOLUTION);
-    this->device->scale_den = FREQUENCY;
+    this->device.scale_nom = pwm_init(pwm, PWM_LEFT, FREQUENCY, RESOLUTION);
+    this->device.scale_den = FREQUENCY;
 }
 
 /**
@@ -35,7 +32,7 @@ void ServoMotor<FREQUENCY, MIN_PULSE, MAX_PULSE, MAX_DEGREE>::init()
 template <uint16_t FREQUENCY, uint16_t MIN_PULSE, uint16_t MAX_PULSE, uint16_t MAX_DEGREE>
 void ServoMotor<FREQUENCY, MIN_PULSE, MAX_PULSE, MAX_DEGREE>::setDegree(uint16_t degree)
 {
-    servo_set(this->device, (uint16_t)(MIN_PULSE + (ONE_DEGREE * degree)));
+    servo_set(&this->device, (uint16_t)(MIN_PULSE + (ONE_DEGREE * degree)));
 }
 
 /**
@@ -46,5 +43,5 @@ void ServoMotor<FREQUENCY, MIN_PULSE, MAX_PULSE, MAX_DEGREE>::setDegree(uint16_t
 template <uint16_t FREQUENCY, uint16_t MIN_PULSE, uint16_t MAX_PULSE, uint16_t MAX_DEGREE>
 void ServoMotor<FREQUENCY, MIN_PULSE, MAX_PULSE, MAX_DEGREE>::detach()
 {
-    pwm_set(this->device->device, (uint8_t)this->device->channel, 0);
+    pwm_set(this->device.device, (uint8_t)this->device.channel, 0);
 }
