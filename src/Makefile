@@ -29,6 +29,7 @@ FEATURES_REQUIRED += periph_timer
 # Used Modules
 USEMODULE += xtimer
 USEMODULE += ds18
+# USEMODULE += ds18_optimized
 USEMODULE += servo
 USEMODULE += hd44780
 
@@ -44,5 +45,8 @@ CXXEXFLAGS += -fno-exceptions
 
 # Linker Flags
 LINKFLAGS += -Wl,--print-memory-usage
+
+# Include directories
+INCLUDES += -I$(CURDIR)
 
 include $(RIOTBASE)/Makefile.include

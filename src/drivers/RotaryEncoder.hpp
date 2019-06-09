@@ -106,7 +106,7 @@ void RotaryEncoder::init()
  */
 void RotaryEncoder::buttonIrqHandler(void* args)
 {
-    auto encoder = (RotaryEncoder*) args;
+    auto encoder = static_cast<RotaryEncoder*>(args);
 
     gpio_irq_disable(encoder->button);
 
@@ -146,7 +146,7 @@ void RotaryEncoder::buttonIrqHandler(void* args)
  */
 void RotaryEncoder::buttonPressedHandler(void *args)
 {
-    auto encoder = (RotaryEncoder*) args;
+    auto encoder = static_cast<RotaryEncoder*>(args);
 
     if (encoder->onKeyPressed) {
         encoder->onKeyPressed();
@@ -161,7 +161,7 @@ void RotaryEncoder::buttonPressedHandler(void *args)
  */
 void RotaryEncoder::pinAIrqHandler(void *args)
 {
-    auto encoder = (RotaryEncoder*) args;
+    auto encoder = static_cast<RotaryEncoder*>(args);
 
     gpio_irq_disable(encoder->pinA);
     encoder->rotationHandler(IrqSource::PIN_A);
@@ -174,7 +174,7 @@ void RotaryEncoder::pinAIrqHandler(void *args)
  */
 void RotaryEncoder::pinBIrqHandler(void *args)
 {
-    auto encoder = (RotaryEncoder*) args;
+    auto encoder = static_cast<RotaryEncoder*>(args);
 
     gpio_irq_disable(encoder->pinB);
     encoder->rotationHandler(IrqSource::PIN_B);

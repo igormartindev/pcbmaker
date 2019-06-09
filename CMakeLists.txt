@@ -21,6 +21,7 @@ set(SIZE arm-none-eabi-size)
 
 set(CMAKE_CXX_STANDARD 11)
 
+include_directories(src)
 include_directories(include)
 include_directories(lib/RIOT/boards/bluepill/include)
 include_directories(lib/RIOT/boards/common)

@@ -1,4 +1,5 @@
 #include <cstdint>
+#include <contracts/ThreadContract.hpp>
 
 template <uint16_t stackSize>
 class Thread
@@ -20,10 +21,10 @@ private:
     int flags;
     kernel_pid_t pid;
 
-    inline static void* call(void* self)
+    static void* call(void* args)
     {
-        ((Thread<stackSize>*)self)->run();
-        return NULL;
+        (static_cast<Thread*>(args))->run();
+        return nullptr;
     }
 };
 
@@ -54,7 +55,7 @@ kernel_pid_t Thread<stackSize>::create()
             sizeof(this->stack),
             this->priority,
             this->flags,
-            Thread<stackSize>::call,
+            Thread::call,
             this,
             this->name
     );
