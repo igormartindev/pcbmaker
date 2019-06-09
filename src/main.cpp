@@ -1,8 +1,9 @@
+#include <msg.h>
 #include "main.hpp"
 #include "threads/SensorsThread.hpp"
 #include "hd44780.h"
 
-typedef SensorsThread<MIN_STACK_SIZE> Sensors;
+typedef SensorsThread<THREAD_STACKSIZE_TINY + THREAD_EXTRA_STACKSIZE_PRINTF> Sensors;
 typedef ServoMotor<50, 544, 2400, 180> Sg90;
 typedef Lcd44780<16, 2> Lcd1602;
 
@@ -17,8 +18,7 @@ Lcd1602 lcd(
     GPIO_PIN(PORT_A, 12)
 );
 
-Sensors sensorsThread("Sensors", THREAD_PRIORITY_MAIN - 1, THREAD_CREATE_WOUT_YIELD);
-
+Sensors sensorsThread("Sensors", THREAD_PRIORITY_MAIN + 1, THREAD_CREATE_WOUT_YIELD);
 uint8_t time = 0;
 
 int main()
@@ -32,7 +32,7 @@ int main()
     };
 
     encoder.onKeyPressed = []() {
-        gpio_toggle(LED0_PIN);
+        time = 0;
     };
 
     encoder.onClockWise = []() {
@@ -63,21 +63,27 @@ int main()
 
     lcd.print("Temperature:");
 
+    msg_t msg;
+
     loop {
-        lcd.setCursorPosition(0, 1);
-        if (sensorsThread.hasTemperature()) {
-            lcd.printf(
-                "%d.%02d *C",
-                (uint16_t)sensorsThread.getTemperature(),
-                abs((uint16_t)(sensorsThread.getTemperature() * 100) % 100)
-            );
+        if (msg_try_receive(&msg)) {
+            auto temp = (uint8_t)msg.content.value;
+
+            lcd.setCursorPosition(0, 1);
+//            lcd.printf(
+//                "%d.%02d *C ",
+//                (uint16_t)temp,
+//                abs((uint16_t)(temp * 100) % 100)
+//            );
+            lcd.printf("%d *C ", temp);
         } else {
-            lcd.print("--.-- *C");
+            lcd.print("-- *C");
         }
 
         lcd.setCursorPosition(10, 1);
         lcd.printf("%d   ", time);
 
+        gpio_toggle(LED0_PIN);
         xtimer_usleep(100000);
     }
 
