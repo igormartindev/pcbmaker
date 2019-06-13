@@ -1526,5 +1526,7 @@ add_executable(system
         src/drivers/Lcd44780.hpp
         src/threads/Thread.hpp src/threads/SensorsThread.hpp
         src/drivers/RotaryEncoder.hpp
+        src/Screen.hpp
+        src/StopWatch.hpp
         src/main.cpp src/main.hpp
 )

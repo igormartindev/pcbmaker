@@ -13,6 +13,10 @@
 #include "drivers/ServoMotor.hpp"
 #include "drivers/Lcd44780.hpp"
 #include "drivers/RotaryEncoder.hpp"
+#include "StopWatch.hpp"
+
+typedef Lcd44780<16, 2> Lcd1602;
+#include "Screen.hpp"
 
 #define loop while(1)
 
