@@ -1,5 +1,4 @@
 #include <cstdint>
-#include <contracts/ThreadContract.hpp>
 
 template <uint16_t stackSize>
 class Thread

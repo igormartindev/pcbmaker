@@ -12,6 +12,8 @@ template <uint8_t COLUMNS_COUNT, uint8_t ROWS_COUNT>
 class Lcd44780
 {
 public:
+    typedef uint8_t CharMap[8];
+
     explicit Lcd44780(gpio_t rs, gpio_t en, gpio_t d4, gpio_t d5, gpio_t d6, gpio_t d7) noexcept;
     void init();
     void clear();
@@ -19,9 +21,12 @@ public:
     void setCursorPosition(uint8_t column, uint8_t row);
     void print(const char* string);
     void printf(const char* pattern, ...);
+    void createCustomChar(uint8_t location, const CharMap *charMap);
+    void printCustomChar(uint8_t location);
 
 private:
     const uint8_t HD44780_PIN_NONE = HD44780_RW_OFF;
+    const uint8_t CUSTOM_CHARACTERS_MAX = 8;
 
     /**
      * Addition symbols for end of string '\0'
@@ -116,4 +121,27 @@ void Lcd44780<COLUMNS_COUNT, ROWS_COUNT>::printf(const char* pattern, ...)
     va_end(args);
 
     this->print(this->buffer);
+}
+
+/**
+ * Create custom character
+ * @param location Character GRAM position
+ * @param charMap Bitmap of the character (5 x 8 pixels)
+ */
+template <uint8_t COLUMNS_COUNT, uint8_t ROWS_COUNT>
+void Lcd44780<COLUMNS_COUNT, ROWS_COUNT>::createCustomChar(uint8_t location, const CharMap *charMap)
+{
+    assert(location <= CUSTOM_CHARACTERS_MAX);
+    hd44780_create_char(&this->device, location, (uint8_t*)charMap);
+}
+
+/**
+ * Print custom character
+ * @param location Character GRAM position
+ */
+template <uint8_t COLUMNS_COUNT, uint8_t ROWS_COUNT>
+void Lcd44780<COLUMNS_COUNT, ROWS_COUNT>::printCustomChar(uint8_t location)
+{
+    assert(location <= CUSTOM_CHARACTERS_MAX);
+    hd44780_write(&this->device, location);
 }
